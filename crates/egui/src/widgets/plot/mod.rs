@@ -1032,7 +1032,7 @@ impl Plot {
             group.set(*transform.bounds());
         }
 
-        // if bounds_modified and live_auto_bounds (false) auto_bounds are diasbled
+        // if bounds_modified and live_auto_bounds (false) auto_bounds are disabled.
         bounds_modified = (bounds_modified.any() && !self.live_auto_bounds).into();
         let memory = PlotMemory {
             bounds_modified,

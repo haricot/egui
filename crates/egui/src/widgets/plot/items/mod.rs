@@ -15,7 +15,6 @@ pub use bar::Bar;
 pub use box_elem::{BoxElem, BoxSpread};
 pub use values::{LineStyle, MarkerShape, Orientation, PlotPoint, PlotPoints};
 
-//use util::bool_state::BoolState;
 
 mod bar;
 mod box_elem;
@@ -24,7 +23,7 @@ mod values;
 
 const DEFAULT_FILL_ALPHA: f32 = 0.05;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BoolState {
     pub init: bool,
     pub state: bool,
@@ -40,20 +39,10 @@ impl Default for BoolState {
 }
 
 impl BoolState {
-    // pub fn new(self, init: bool, state: bool) -> Self {
-    //     Self { init, state }
-    // }
-
-    // pub fn toggle(&mut self) {
-    //     self.state = !self.state;
-    // }
-
     pub fn is_allowed(&self) -> bool {
         self.init && self.state == true
     }
 }
-
-
 
 /// Container to pass-through several parameters related to plot visualization
 pub(super) struct PlotConfig<'a> {

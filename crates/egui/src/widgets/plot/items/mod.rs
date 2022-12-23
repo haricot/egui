@@ -15,7 +15,7 @@ pub use bar::Bar;
 pub use box_elem::{BoxElem, BoxSpread};
 pub use values::{LineStyle, MarkerShape, Orientation, PlotPoint, PlotPoints};
 
-use util::bool_state::BoolState;
+//use util::bool_state::BoolState;
 
 mod bar;
 mod box_elem;
@@ -23,6 +23,37 @@ mod rect_elem;
 mod values;
 
 const DEFAULT_FILL_ALPHA: f32 = 0.05;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BoolState {
+    pub init: bool,
+    pub state: bool,
+}
+
+impl Default for BoolState {
+    fn default() -> Self {
+        Self {
+            init: true,
+            state: false,
+        }
+    }
+}
+
+impl BoolState {
+    // pub fn new(self, init: bool, state: bool) -> Self {
+    //     Self { init, state }
+    // }
+
+    // pub fn toggle(&mut self) {
+    //     self.state = !self.state;
+    // }
+
+    pub fn is_allowed(&self) -> bool {
+        self.init && self.state == true
+    }
+}
+
+
 
 /// Container to pass-through several parameters related to plot visualization
 pub(super) struct PlotConfig<'a> {
@@ -47,7 +78,7 @@ pub(super) trait PlotItem {
 
     fn highlighted(&self) -> bool;
 
-    fn hovered(&self) -> bool;
+    fn allow_hover(&self) -> bool;
 
     fn geometry(&self) -> PlotGeometry<'_>;
 
@@ -123,7 +154,7 @@ pub struct HLine {
     pub(super) stroke: Stroke,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) style: LineStyle,
 }
 
@@ -134,7 +165,7 @@ impl HLine {
             stroke: Stroke::new(1.0, Color32::TRANSPARENT),
             name: String::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             style: LineStyle::Solid,
         }
     }
@@ -146,11 +177,11 @@ impl HLine {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
-    
+
     /// Add a stroke.
     pub fn stroke(mut self, stroke: impl Into<Stroke>) -> Self {
         self.stroke = stroke.into();
@@ -228,8 +259,8 @@ impl PlotItem for HLine {
         self.highlight.state
     }
 
-    fn hovered(&self) -> bool {
-        self.hover.state
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -251,7 +282,7 @@ pub struct VLine {
     pub(super) stroke: Stroke,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) style: LineStyle,
 }
 
@@ -262,7 +293,7 @@ impl VLine {
             stroke: Stroke::new(1.0, Color32::TRANSPARENT),
             name: String::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             style: LineStyle::Solid,
         }
     }
@@ -274,8 +305,8 @@ impl VLine {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -355,9 +386,9 @@ impl PlotItem for VLine {
     fn highlighted(&self) -> bool {
         self.highlight.state
     }
- 
-    fn hovered(&self) -> bool {
-        self.hover.state
+
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -378,7 +409,7 @@ pub struct Line {
     pub(super) stroke: Stroke,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) fill: Option<f32>,
     pub(super) style: LineStyle,
 }
@@ -390,7 +421,7 @@ impl Line {
             stroke: Stroke::new(1.0, Color32::TRANSPARENT),
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             fill: None,
             style: LineStyle::Solid,
         }
@@ -403,8 +434,8 @@ impl Line {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -538,8 +569,8 @@ impl PlotItem for Line {
         self.highlight.state
     }
 
-    fn hovered(&self) -> bool {
-        self.hover.state
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -557,7 +588,7 @@ pub struct Polygon {
     pub(super) stroke: Stroke,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) fill_alpha: f32,
     pub(super) style: LineStyle,
 }
@@ -569,7 +600,7 @@ impl Polygon {
             stroke: Stroke::new(1.0, Color32::TRANSPARENT),
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             fill_alpha: DEFAULT_FILL_ALPHA,
             style: LineStyle::Solid,
         }
@@ -583,8 +614,8 @@ impl Polygon {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -679,9 +710,9 @@ impl PlotItem for Polygon {
     fn highlighted(&self) -> bool {
         self.highlight.state
     }
- 
-    fn hovered(&self) -> bool {
-        self.hover.state
+
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -700,7 +731,7 @@ pub struct Text {
     pub(super) position: PlotPoint,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) color: Color32,
     pub(super) anchor: Align2,
 }
@@ -712,7 +743,7 @@ impl Text {
             position,
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             color: Color32::TRANSPARENT,
             anchor: Align2::CENTER_CENTER,
         }
@@ -725,8 +756,8 @@ impl Text {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -806,8 +837,8 @@ impl PlotItem for Text {
         self.highlight.state
     }
 
-    fn hovered(&self) -> bool {
-        self.hover.state
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -833,7 +864,7 @@ pub struct Points {
     pub(super) radius: f32,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) stems: Option<f32>,
 }
 
@@ -847,7 +878,7 @@ impl Points {
             radius: 1.0,
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             stems: None,
         }
     }
@@ -865,8 +896,8 @@ impl Points {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -1056,8 +1087,8 @@ impl PlotItem for Points {
         self.highlight.state
     }
 
-    fn hovered(&self) -> bool {
-        self.hover.state
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -1076,7 +1107,7 @@ pub struct Arrows {
     pub(super) color: Color32,
     pub(super) name: String,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
 }
 
 impl Arrows {
@@ -1087,7 +1118,7 @@ impl Arrows {
             color: Color32::TRANSPARENT,
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
         }
     }
 
@@ -1098,8 +1129,8 @@ impl Arrows {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -1183,8 +1214,8 @@ impl PlotItem for Arrows {
         self.highlight.state
     }
 
-    fn hovered(&self) -> bool {
-        self.hover.state
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -1206,7 +1237,7 @@ pub struct PlotImage {
     pub(super) bg_fill: Color32,
     pub(super) tint: Color32,
     pub(super) highlight: BoolState,
-    pub(super) hover: BoolState,
+    pub(super) allow_hover: bool,
     pub(super) name: String,
 }
 
@@ -1221,7 +1252,7 @@ impl PlotImage {
             position: center_position,
             name: Default::default(),
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
             texture_id: texture_id.into(),
             uv: Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
             size: size.into(),
@@ -1237,8 +1268,8 @@ impl PlotImage {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -1329,9 +1360,9 @@ impl PlotItem for PlotImage {
     fn highlighted(&self) -> bool {
         self.highlight.state
     }
- 
-    fn hovered(&self) -> bool {
-        self.hover.state
+
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -1364,7 +1395,7 @@ pub struct BarChart {
     /// A custom element formatter
     pub(super) element_formatter: Option<Box<dyn Fn(&Bar, &BarChart) -> String>>,
     highlight: BoolState,
-    hover: BoolState,
+    allow_hover: bool,
 }
 
 impl BarChart {
@@ -1376,7 +1407,7 @@ impl BarChart {
             name: String::new(),
             element_formatter: None,
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
         }
     }
 
@@ -1439,8 +1470,8 @@ impl BarChart {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -1502,9 +1533,9 @@ impl PlotItem for BarChart {
     fn highlighted(&self) -> bool {
         self.highlight.state
     }
- 
-    fn hovered(&self) -> bool {
-        self.hover.state
+
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {
@@ -1546,7 +1577,7 @@ pub struct BoxPlot {
     /// A custom element formatter
     pub(super) element_formatter: Option<Box<dyn Fn(&BoxElem, &BoxPlot) -> String>>,
     highlight: BoolState,
-    hover: BoolState,
+    allow_hover: bool,
 }
 
 impl BoxPlot {
@@ -1558,7 +1589,7 @@ impl BoxPlot {
             name: String::new(),
             element_formatter: None,
             highlight: BoolState::default(),
-            hover: BoolState::default(),
+            allow_hover: true,
         }
     }
 
@@ -1615,8 +1646,8 @@ impl BoxPlot {
     }
 
     // Allowed hovering this line in the plot.
-    pub fn hover(mut self, hovering: bool) -> Self {
-        self.hover.init = hovering;
+    pub fn allow_hover(mut self, hovering: bool) -> Self {
+        self.allow_hover = hovering;
         self
     }
 
@@ -1657,9 +1688,9 @@ impl PlotItem for BoxPlot {
     fn highlighted(&self) -> bool {
         self.highlight.state
     }
- 
-    fn hovered(&self) -> bool {
-        self.hover.state
+
+    fn allow_hover(&self) -> bool {
+        self.allow_hover
     }
 
     fn geometry(&self) -> PlotGeometry<'_> {

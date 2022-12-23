@@ -267,6 +267,7 @@ pub struct Plot {
     allow_zoom: bool,
     allow_drag: bool,
     allow_scroll: bool,
+    live_auto_bounds: bool,
     allow_double_click_reset: bool,
     allow_boxed_zoom: bool,
     auto_bounds: AxisBools,
@@ -309,6 +310,7 @@ impl Plot {
             allow_zoom: true,
             allow_drag: true,
             allow_scroll: true,
+            live_auto_bounds: true,
             allow_double_click_reset: true,
             allow_boxed_zoom: true,
             auto_bounds: false.into(),
@@ -412,6 +414,12 @@ impl Plot {
     /// Whether to allow scrolling in the plot. Default: `true`.
     pub fn allow_scroll(mut self, on: bool) -> Self {
         self.allow_scroll = on;
+        self
+    }
+
+    /// Whether to allow auto bounds in the plot when initializing the memory and if the min bounds changed. Default: `true`.
+    pub fn live_auto_bounds(mut self, on: bool) -> Self {
+        self.live_auto_bounds = on;
         self
     }
 
@@ -651,7 +659,7 @@ impl Plot {
     }
 
     fn show_dyn<'a, R>(
-        self,
+        mut self,
         ui: &mut Ui,
         build_fn: Box<dyn FnOnce(&mut PlotUi) -> R + 'a>,
     ) -> InnerResponse<R> {
@@ -662,6 +670,7 @@ impl Plot {
             allow_zoom,
             allow_drag,
             allow_scroll,
+            live_auto_bounds,
             allow_double_click_reset,
             allow_boxed_zoom,
             boxed_zoom_pointer_button: boxed_zoom_pointer,
@@ -761,7 +770,6 @@ impl Plot {
             response,
             plot_id: plot_id.clone(),
             ctx: ui.ctx().clone(),
-            last_coordinate: None,
         };
         let inner = build_fn(&mut plot_ui);
         let PlotUi {
@@ -999,7 +1007,7 @@ impl Plot {
             clamp_grid,
             index_subindex_shapes: None,
         };
-        let (plot_cursors,indexes_hover)  = prepared.ui(ui, &response);
+        let (plot_cursors, indexes_hover) = prepared.ui(ui, &response);
 
         if let Some(boxed_zoom_rect) = boxed_zoom_rect {
             ui.painter().with_clip_rect(rect).add(boxed_zoom_rect.0);
@@ -1024,6 +1032,8 @@ impl Plot {
             group.set(*transform.bounds());
         }
 
+        // if bounds_modified and live_auto_bounds (false) auto_bounds are diasbled
+        bounds_modified = (bounds_modified.any() && !self.live_auto_bounds).into();
         let memory = PlotMemory {
             bounds_modified,
             hovered_entry,
@@ -1054,7 +1064,6 @@ pub struct PlotUi {
     ctx: Context,
     is_hovered_entry: bool,
     plot_id: Id,
-    last_coordinate: Option<Pos2>,
 }
 
 impl PlotUi {
@@ -1354,7 +1363,7 @@ struct PreparedPlot {
 }
 
 impl PreparedPlot {
-    fn ui(mut self, ui: &mut Ui, response: &Response) -> (Vec<Cursor>,Option<[usize; 2]>) {
+    fn ui(mut self, ui: &mut Ui, response: &Response) -> (Vec<Cursor>, Option<[usize; 2]>) {
         let mut axes_shapes = Vec::new();
 
         for d in 0..2 {
@@ -1388,7 +1397,7 @@ impl PreparedPlot {
             (Vec::new(), None)
         };
         if index_subindex_shapes.is_some() {
-            self.index_subindex_shapes =  index_subindex_shapes
+            self.index_subindex_shapes = index_subindex_shapes
         }
         // Draw cursors
         let line_color = rulers_color(ui);
@@ -1592,7 +1601,12 @@ impl PreparedPlot {
         }
     }
 
-    fn hover(&self, ui: &Ui, pointer: Pos2, shapes: &mut Vec<Shape>) -> (Vec<Cursor>, Option<[usize; 2]>) {
+    fn hover(
+        &self,
+        ui: &Ui,
+        pointer: Pos2,
+        shapes: &mut Vec<Shape>,
+    ) -> (Vec<Cursor>, Option<[usize; 2]>) {
         let Self {
             transform,
             show_x,
@@ -1610,7 +1624,7 @@ impl PreparedPlot {
 
         let candidates = items
             .iter()
-            .filter(|entry| entry.hovered() == true)
+            .filter(|entry| entry.allow_hover() == true)
             .enumerate()
             .filter_map(|(i, item)| {
                 let item = &**item;
@@ -1619,7 +1633,7 @@ impl PreparedPlot {
                 Some((i, item)).zip(closest)
             });
 
-            let closest = candidates
+        let closest = candidates
             .min_by_key(|(i, elem)| elem.dist_sq.ord())
             .filter(|(_, elem)| elem.dist_sq <= interact_radius_sq);
 
@@ -1631,15 +1645,16 @@ impl PreparedPlot {
             show_x: *show_x,
             show_y: *show_y,
         };
-        
+
         let mut index_interact_radius_sq;
 
         if let Some((item, elem)) = closest {
             index_interact_radius_sq = Some([item.0, elem.index]);
             // self.index_subindex_shapes  =  Some([item.0, elem.index]);
 
-            item.1.on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
-           // item.on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
+            item.1
+                .on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
+            // item.on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
         } else {
             let value = transform.value_from_position(pointer);
             items::rulers_at_value(
@@ -1654,7 +1669,7 @@ impl PreparedPlot {
             index_interact_radius_sq = None;
         }
 
-        (cursors,  index_interact_radius_sq)
+        (cursors, index_interact_radius_sq)
     }
 }
 

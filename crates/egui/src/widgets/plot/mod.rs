@@ -856,7 +856,7 @@ impl Plot {
         // Allow double clicking to reset to the initial bounds?
         if allow_double_click_reset && response.double_clicked_by(PointerButton::Primary) {
             bounds_modified = false.into();
-        }  
+        }
 
         // Reset bounds to initial bounds if we haven't been modified.
         if !bounds_modified.x {
@@ -955,9 +955,9 @@ impl Plot {
                         ],
                     };
                     if new_bounds.is_valid() {
-                      transform.set_bounds(new_bounds);
+                        transform.set_bounds(new_bounds);
                         bounds_modified = true.into();
-                    } 
+                    }
                     // reset the boxed zoom state
                     last_click_pos_for_zoom = None;
                 }

@@ -856,7 +856,7 @@ impl Plot {
         // Allow double clicking to reset to the initial bounds?
         if allow_double_click_reset && response.double_clicked_by(PointerButton::Primary) {
             bounds_modified = false.into();
-        }
+        }  
 
         // Reset bounds to initial bounds if we haven't been modified.
         if !bounds_modified.x {
@@ -955,9 +955,9 @@ impl Plot {
                         ],
                     };
                     if new_bounds.is_valid() {
-                        transform.set_bounds(new_bounds);
+                      transform.set_bounds(new_bounds);
                         bounds_modified = true.into();
-                    }
+                    } 
                     // reset the boxed zoom state
                     last_click_pos_for_zoom = None;
                 }
@@ -1032,8 +1032,12 @@ impl Plot {
             group.set(*transform.bounds());
         }
 
-        // if bounds_modified and live_auto_bounds (false) auto_bounds are disabled.
-        bounds_modified = (bounds_modified.any() && !self.live_auto_bounds).into();
+        // if we are not in live mode (live_auto_bounds = false), the bounds will not be updated automatically
+        // when the plot is redrawn. This is useful when we interact drawing in plot.
+        if !self.live_auto_bounds {
+            bounds_modified = true.into();
+        }
+
         let memory = PlotMemory {
             bounds_modified,
             hovered_entry,

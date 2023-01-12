@@ -6,6 +6,7 @@ NOTE: [`epaint`](crates/epaint/CHANGELOG.md), [`eframe`](crates/eframe/CHANGELOG
 
 ## Unreleased
 ### Added ⭐
+* Add`Plot::allow_auto_bounds` auto bounds or keep bounds. Default: `true`.
 * Add `Plot::Item::allow_hover` give possibility to masked the interaction on hovered item.
 * Add `Plot::plot_interact` Returns `true` if the plot area has interaction pointer.
 * `Event::Key` now has a `repeat` field that is set to `true` if the event was the result of a key-repeat ([#2435](https://github.com/emilk/egui/pull/2435)).

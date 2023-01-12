@@ -809,7 +809,7 @@ impl InteractionDemo {
             interact
         ));
         ui.label(format!(
-            "pointer is hovered_indexes: {}",
+            "pointer is hovered_indexes: {:?}",
             hovered_indexes
         ));
         ui.label(format!(

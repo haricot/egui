@@ -1067,7 +1067,7 @@ pub struct PlotUi {
     last_screen_transform: ScreenTransform,
     response: Response,
     ctx: Context,
-    hovered_indexes: Option<[usize; 2]> 
+    hovered_indexes: Option<[usize; 2]>,
     is_hovered_entry: bool,
 }
 
@@ -1114,6 +1114,7 @@ impl PlotUi {
     /// Returns the index and subindex shape of the hovered point in the plot.
     pub fn plot_hovered_indexes(&self) -> Option<[usize; 2]> {
         self.hovered_indexes
+    }
 
     /// Returns `true` if the plot area is hovered entry.
     pub fn is_hovered_entry(&self) -> bool {
@@ -1631,7 +1632,7 @@ impl PreparedPlot {
         let closest = candidates
             .min_by_key(|(_, elem)| elem.dist_sq.ord())
             .filter(|(_, elem)| elem.dist_sq <= interact_radius_sq);
-      
+
         let mut cursors = Vec::new();
 
         let plot = items::PlotConfig {

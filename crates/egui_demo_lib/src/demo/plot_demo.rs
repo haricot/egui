@@ -805,21 +805,17 @@ impl InteractionDemo {
             coordinate_text
         ));
         ui.label(format!(
-<<<<<<< HEAD
-<<<<<<< HEAD
             "pointer interact: {}",
             interact
         ));
-=======
-            "pointer is hovered_indexes: {:?}",
+        ui.label(format!(
+            "pointer is hovered_indexes: {}",
             hovered_indexes
-=======
+        ));
+        ui.label(format!(
             "pointer is hovered_entry: {}",
             hovered_entry
->>>>>>> plot_is_hover_entry
         ));
-
->>>>>>> indexes_hovered
         response
     }
 }

@@ -1106,8 +1106,6 @@ impl PlotUi {
         self.response.hovered()
     }
 
-<<<<<<< HEAD
-
     /// Returns `true` if the plot area has interaction pointer.
     pub fn plot_interact(&self) -> bool {
         self.response.interact_pointer_pos().is_some() 

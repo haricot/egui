@@ -755,12 +755,19 @@ struct InteractionDemo {}
 impl InteractionDemo {
     #[allow(clippy::unused_self)]
     fn ui(&mut self, ui: &mut Ui) -> Response {
-        let plot = Plot::new("interaction_demo").height(300.0);
+        let plot = Plot::new("interaction_demo").height(300.0).legend(Legend::default());
 
         let InnerResponse {
             response,
-            inner: (screen_pos, pointer_coordinate, pointer_coordinate_drag_delta, bounds, hovered, interact),
+            inner: (screen_pos, pointer_coordinate, pointer_coordinate_drag_delta, bounds, hovered, interact, hovered_indexes),
         } = plot.show(ui, |plot_ui| {
+
+            plot_ui.line(  Line::new(PlotPoints::from_explicit_callback(
+                move |x| x.sin(),
+                ..,
+                100,
+                
+            )).name( "Sin"));
             (
                 plot_ui.screen_from_plot(PlotPoint::new(0.0, 0.0)),
                 plot_ui.pointer_coordinate(),
@@ -768,6 +775,7 @@ impl InteractionDemo {
                 plot_ui.plot_bounds(),
                 plot_ui.plot_hovered(),
                 plot_ui.plot_interact(),
+                plot_ui.plot_hovered_indexes(),
             )
         });
 
@@ -796,9 +804,16 @@ impl InteractionDemo {
             coordinate_text
         ));
         ui.label(format!(
+<<<<<<< HEAD
             "pointer interact: {}",
             interact
         ));
+=======
+            "pointer is hovered_indexes: {:?}",
+            hovered_indexes
+        ));
+
+>>>>>>> indexes_hovered
         response
     }
 }

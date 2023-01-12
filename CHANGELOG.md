@@ -6,7 +6,7 @@ NOTE: [`epaint`](crates/epaint/CHANGELOG.md), [`eframe`](crates/eframe/CHANGELOG
 
 ## Unreleased
 ### Added ⭐
-<<<<<<< HEAD
+* Add `Plot::is_hovered_entry` Returns `true` if the plot area is hovered entry.
 * Add`Plot::allow_auto_bounds` auto bounds or keep bounds. Default: `true`.
 * Add `Plot::hovered_indexes` Returns the index and subindex of the point of the hovered shape.
 * Add `Plot::Item::allow_hover` give possibility to masked the interaction on hovered item.

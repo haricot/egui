@@ -768,6 +768,7 @@ impl Plot {
             items: Vec::new(),
             next_auto_color_idx: 0,
             last_screen_transform,
+            is_hovered_entry: hovered_entry.is_some(),
             response,
             ctx: ui.ctx().clone(),
             hovered_indexes:hovered_indexes.clone(),
@@ -1067,6 +1068,7 @@ pub struct PlotUi {
     response: Response,
     ctx: Context,
     hovered_indexes: Option<[usize; 2]> 
+    is_hovered_entry: bool,
 }
 
 impl PlotUi {
@@ -1104,6 +1106,7 @@ impl PlotUi {
         self.response.hovered()
     }
 
+<<<<<<< HEAD
 
     /// Returns `true` if the plot area has interaction pointer.
     pub fn plot_interact(&self) -> bool {
@@ -1113,6 +1116,10 @@ impl PlotUi {
     /// Returns the index and subindex shape of the hovered point in the plot.
     pub fn plot_hovered_indexes(&self) -> Option<[usize; 2]> {
         self.hovered_indexes
+
+    /// Returns `true` if the plot area is hovered entry.
+    pub fn is_hovered_entry(&self) -> bool {
+        self.is_hovered_entry
     }
 
     /// Returns `true` if the plot was clicked by the primary button.

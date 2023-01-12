@@ -759,7 +759,7 @@ impl InteractionDemo {
 
         let InnerResponse {
             response,
-            inner: (screen_pos, pointer_coordinate, pointer_coordinate_drag_delta, bounds, hovered, interact, hovered_indexes),
+            inner: (screen_pos, pointer_coordinate, pointer_coordinate_drag_delta, bounds, hovered, interact, hovered_indexes, hovered_entry),
         } = plot.show(ui, |plot_ui| {
 
             plot_ui.line(  Line::new(PlotPoints::from_explicit_callback(
@@ -776,6 +776,7 @@ impl InteractionDemo {
                 plot_ui.plot_hovered(),
                 plot_ui.plot_interact(),
                 plot_ui.plot_hovered_indexes(),
+                plot_ui.is_hovered_entry(),
             )
         });
 
@@ -805,12 +806,17 @@ impl InteractionDemo {
         ));
         ui.label(format!(
 <<<<<<< HEAD
+<<<<<<< HEAD
             "pointer interact: {}",
             interact
         ));
 =======
             "pointer is hovered_indexes: {:?}",
             hovered_indexes
+=======
+            "pointer is hovered_entry: {}",
+            hovered_entry
+>>>>>>> plot_is_hover_entry
         ));
 
 >>>>>>> indexes_hovered

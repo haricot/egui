@@ -49,17 +49,26 @@ pub(super) trait PlotItem {
 
     fn bounds(&self) -> PlotBounds;
 
-    fn find_closest(&self, point: Pos2, transform: &PlotTransform) -> Option<ClosestElem> {
+    fn find_closest(
+        &self,
+        index: usize,
+        point: Pos2,
+        transform: &PlotTransform,
+    ) -> Option<ClosestElem> {
         match self.geometry() {
             PlotGeometry::None => None,
 
             PlotGeometry::Points(points) => points
                 .iter()
                 .enumerate()
-                .map(|(index, value)| {
+                .map(|(sub_index, value)| {
                     let pos = transform.position_from_point(value);
                     let dist_sq = point.distance_sq(pos);
-                    ClosestElem { index, dist_sq }
+                    ClosestElem {
+                        index,
+                        sub_index,
+                        dist_sq,
+                    }
                 })
                 .min_by_key(|e| e.dist_sq.ord()),
 
@@ -94,7 +103,7 @@ pub(super) trait PlotItem {
         };
 
         // this method is only called, if the value is in the result set of find_closest()
-        let value = points[elem.index];
+        let value = points[elem.sub_index];
         let pointer = plot.transform.position_from_point(&value);
         shapes.push(Shape::circle_filled(pointer, 3.0, line_color));
 
@@ -1445,8 +1454,13 @@ impl PlotItem for BarChart {
         bounds
     }
 
-    fn find_closest(&self, point: Pos2, transform: &PlotTransform) -> Option<ClosestElem> {
-        find_closest_rect(&self.bars, point, transform)
+    fn find_closest(
+        &self,
+        index: usize,
+        point: Pos2,
+        transform: &PlotTransform,
+    ) -> Option<ClosestElem> {
+        find_closest_rect(&self.bars, index, point, transform)
     }
 
     fn on_hover(
@@ -1457,7 +1471,7 @@ impl PlotItem for BarChart {
         plot: &PlotConfig<'_>,
         _: &LabelFormatter,
     ) {
-        let bar = &self.bars[elem.index];
+        let bar = &self.bars[elem.sub_index];
 
         bar.add_shapes(plot.transform, true, shapes);
         bar.add_rulers_and_text(self, plot, shapes, cursors);
@@ -1590,8 +1604,13 @@ impl PlotItem for BoxPlot {
         bounds
     }
 
-    fn find_closest(&self, point: Pos2, transform: &PlotTransform) -> Option<ClosestElem> {
-        find_closest_rect(&self.boxes, point, transform)
+    fn find_closest(
+        &self,
+        index: usize,
+        point: Pos2,
+        transform: &PlotTransform,
+    ) -> Option<ClosestElem> {
+        find_closest_rect(&self.boxes, index, point, transform)
     }
 
     fn on_hover(
@@ -1602,7 +1621,8 @@ impl PlotItem for BoxPlot {
         plot: &PlotConfig<'_>,
         _: &LabelFormatter,
     ) {
-        let box_plot = &self.boxes[elem.index];
+        let box_plot = &self.boxes[elem.sub_index];
+        println!("boox {:?}", box_plot);
 
         box_plot.add_shapes(plot.transform, true, shapes);
         box_plot.add_rulers_and_text(self, plot, shapes, cursors);
@@ -1770,20 +1790,25 @@ pub(super) fn rulers_at_value(
 
 fn find_closest_rect<'a, T>(
     rects: impl IntoIterator<Item = &'a T>,
+    index: usize,
     point: Pos2,
     transform: &PlotTransform,
 ) -> Option<ClosestElem>
 where
     T: 'a + RectElement,
 {
-    rects
+        rects
         .into_iter()
         .enumerate()
-        .map(|(index, bar)| {
+        .map(|(sub_index, bar)| {
             let bar_rect: Rect = transform.rect_from_values(&bar.bounds_min(), &bar.bounds_max());
             let dist_sq = bar_rect.distance_sq_to_pos(point);
 
-            ClosestElem { index, dist_sq }
+            ClosestElem {
+                index,
+                sub_index,
+                dist_sq,
+            }
         })
         .min_by_key(|e| e.dist_sq.ord())
 }

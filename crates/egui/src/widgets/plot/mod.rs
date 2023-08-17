@@ -1809,16 +1809,14 @@ impl PreparedPlot {
 
         let interact_radius_sq: f32 = (16.0f32).powi(2);
 
-        let candidates = items.iter().filter_map(|item| {
+        let candidates = items.iter().enumerate().filter_map(|(index, item)| {
             let item = &**item;
-            let closest = item.find_closest(pointer, transform);
-
-            Some(item).zip(closest)
+            item.find_closest(index, pointer, transform)
         });
 
         let closest = candidates
-            .min_by_key(|(_, elem)| elem.dist_sq.ord())
-            .filter(|(_, elem)| elem.dist_sq <= interact_radius_sq);
+            .min_by_key(|elem| elem.dist_sq.ord())
+            .filter(|elem| elem.dist_sq <= interact_radius_sq);
 
         let mut cursors = Vec::new();
 
@@ -1829,8 +1827,8 @@ impl PreparedPlot {
             show_y: *show_y,
         };
 
-        if let Some((item, elem)) = closest {
-            item.on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
+        if let Some(elem) = closest {
+            items[elem.index].on_hover(elem, shapes, &mut cursors, &plot, label_formatter);
         } else {
             let value = transform.value_from_position(pointer);
             items::rulers_at_value(
@@ -1843,7 +1841,6 @@ impl PreparedPlot {
                 label_formatter,
             );
         }
-
         cursors
     }
 }

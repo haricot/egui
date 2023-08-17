@@ -355,6 +355,7 @@ impl MarkerShape {
 // ----------------------------------------------------------------------------
 
 /// Query the points of the plot, for geometric relations like closest checks
+#[derive(Debug)]
 pub(crate) enum PlotGeometry<'a> {
     /// No geometry based on single elements (examples: text, image, horizontal/vertical line)
     None,
@@ -424,8 +425,11 @@ impl ExplicitGenerator {
 
 /// Result of [`super::PlotItem::find_closest()`] search, identifies an element inside the item for immediate use
 pub(crate) struct ClosestElem {
-    /// Position of hovered-over value (or bar/box-plot/...) in PlotItem
+    /// Position of hovered-over element in PlotItem
     pub index: usize,
+
+    /// Position of hovered-over value (or bar/box-plot/...) in PlotItem
+    pub sub_index: usize,
 
     /// Squared distance from the mouse cursor (needed to compare against other PlotItems, which might be nearer)
     pub dist_sq: f32,

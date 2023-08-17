@@ -5,8 +5,8 @@ use egui::*;
 
 use egui::plot::{
     Arrows, AxisBools, AxisHints, Bar, BarChart, BoxElem, BoxPlot, BoxSpread, CoordinatesFormatter,
-    Corner, GridInput, GridMark, HLine, Legend, Line, LineStyle, MarkerShape, Plot, PlotImage,
-    PlotPoint, PlotPoints, PlotResponse, Points, Polygon, Text, VLine,
+    Corner, GridInput, GridMark, HLine, Legend, Line, LineStyle, MarkerShape, Plot, PlotBounds,
+    PlotImage, PlotPoint, PlotPoints, PlotResponse, PlotUi, Points, Polygon, Text, VLine,
 };
 
 // ----------------------------------------------------------------------------
@@ -21,6 +21,7 @@ enum Panel {
     Interaction,
     CustomAxes,
     LinkedAxes,
+    DrawBasic,
 }
 
 impl Default for Panel {
@@ -41,6 +42,7 @@ pub struct PlotDemo {
     interaction_demo: InteractionDemo,
     custom_axes_demo: CustomAxesDemo,
     linked_axes_demo: LinkedAxesDemo,
+    painting_demo: PaintingDemo,
     open_panel: Panel,
 }
 
@@ -87,6 +89,7 @@ impl super::View for PlotDemo {
             ui.selectable_value(&mut self.open_panel, Panel::Interaction, "Interaction");
             ui.selectable_value(&mut self.open_panel, Panel::CustomAxes, "Custom Axes");
             ui.selectable_value(&mut self.open_panel, Panel::LinkedAxes, "Linked Axes");
+            ui.selectable_value(&mut self.open_panel, Panel::DrawBasic, "Painting");
         });
         ui.separator();
 
@@ -114,6 +117,9 @@ impl super::View for PlotDemo {
             }
             Panel::LinkedAxes => {
                 self.linked_axes_demo.ui(ui);
+            }
+            Panel::DrawBasic => {
+                self.painting_demo.ui(ui);
             }
         }
     }
@@ -1031,4 +1037,66 @@ fn is_approx_zero(val: f64) -> bool {
 
 fn is_approx_integer(val: f64) -> bool {
     val.fract().abs() < 1e-6
+}
+
+#[derive(PartialEq, Default)]
+
+struct PaintingDemo {
+    points: Vec<Vec<[f64; 2]>>,
+}
+
+impl PaintingDemo {
+    fn ui(&mut self, ui: &mut Ui) -> Response {
+        //ui.horizontal(|ui| {});
+        self.ui_content(ui)
+    }
+    pub fn ui_content(&mut self, ui: &mut egui::Ui) -> egui::Response {
+        let is_key_space_down = ui.ctx().input(|i| i.key_down(Key::Space));
+        let plot = egui::plot::Plot::new("example_plot")
+            .allow_drag(is_key_space_down)
+            .data_aspect(1.0)
+            .allow_boxed_zoom(is_key_space_down)
+            .allow_double_click_reset(is_key_space_down)
+            .allow_auto_bounds(false)
+            .legend(egui::plot::Legend::default())
+            .show(ui, |plot_ui| {
+                plot_ui.plot_bounds();
+                plot_ui.set_plot_bounds(PlotBounds::from_min_max([0.0, -1.0], [6.0, 3.0]));
+                if self.points.is_empty() {
+                    self.points.push(Vec::new());
+                }
+                let interact_pos = plot_ui.ctx().input(|i| i.pointer.interact_pos());
+                let down = plot_ui.ctx().input(|i| i.pointer.primary_down());
+
+                let lines = self.points.last_mut();
+                let point_coord = plot_ui.pointer_coordinate();
+                if lines.is_some() && point_coord.is_some() && interact_pos.is_some() {
+                    let current_line = lines.unwrap();
+                    if !plot_ui.response().clicked() && down {
+                        let canvas_pos = plot_ui.pointer_coordinate().unwrap();
+                        let canvas_pos = [canvas_pos.x, canvas_pos.y];
+
+                        if current_line.last() != Some(&canvas_pos) {
+                            current_line.push(canvas_pos);
+                        }
+                    } else if !current_line.is_empty() {
+                        self.points.push(vec![]);
+                    }
+                }
+                self.render(plot_ui, &self.points);
+            });
+        plot.response
+    }
+
+    fn render(&self, plot_ui: &mut PlotUi, vec_tool: &Vec<Vec<[f64; 2]>>) {
+        for points in vec_tool.iter() {
+            if points.len() >= 2 {
+                plot_ui.line(
+                    Line::new(PlotPoints::from(points.clone()))
+                        .color(Color32::from_rgb(100, 150, 250))
+                        .name("Line"),
+                );
+            }
+        }
+    }
 }

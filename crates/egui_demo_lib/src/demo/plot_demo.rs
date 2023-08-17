@@ -1050,6 +1050,7 @@ impl PaintingDemo {
         //ui.horizontal(|ui| {});
         self.ui_content(ui)
     }
+
     pub fn ui_content(&mut self, ui: &mut egui::Ui) -> egui::Response {
         let is_key_space_down = ui.ctx().input(|i| i.key_down(Key::Space));
         let plot = egui::plot::Plot::new("example_plot")
@@ -1065,15 +1066,15 @@ impl PaintingDemo {
                 if self.points.is_empty() {
                     self.points.push(Vec::new());
                 }
-                let interact_pos = plot_ui.ctx().input(|i| i.pointer.interact_pos());
+
                 let down = plot_ui.ctx().input(|i| i.pointer.primary_down());
 
-                let lines = self.points.last_mut();
-                let point_coord = plot_ui.pointer_coordinate();
-                if lines.is_some() && point_coord.is_some() && interact_pos.is_some() {
-                    let current_line = lines.unwrap();
+                let current_line = self.points.last_mut();
+                if let (Some(current_line), Some(point_coord)) =
+                    (current_line, plot_ui.pointer_coordinate())
+                {
                     if !plot_ui.response().clicked() && down {
-                        let canvas_pos = plot_ui.pointer_coordinate().unwrap();
+                        let canvas_pos = point_coord;
                         let canvas_pos = [canvas_pos.x, canvas_pos.y];
 
                         if current_line.last() != Some(&canvas_pos) {
@@ -1083,12 +1084,12 @@ impl PaintingDemo {
                         self.points.push(vec![]);
                     }
                 }
-                self.render(plot_ui, &self.points);
+                PaintingDemo::render(plot_ui, &self.points);
             });
         plot.response
     }
 
-    fn render(&self, plot_ui: &mut PlotUi, vec_tool: &Vec<Vec<[f64; 2]>>) {
+    fn render(plot_ui: &mut PlotUi, vec_tool: &[Vec<[f64; 2]>]) {
         for points in vec_tool.iter() {
             if points.len() >= 2 {
                 plot_ui.line(
